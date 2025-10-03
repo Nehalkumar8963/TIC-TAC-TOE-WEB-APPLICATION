@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1d2671, #c33764);
+      margin: 0;
+    }
+    .game-container {
+      text-align: center;
+      color: white;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .mode-buttons {
+      margin-bottom: 15px;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #ff9800;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #e68900;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 5px;
+      margin: 20px auto;
+    }
+    .cell {
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+    .cell:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .status {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Tic-Tac-Toe</h1>
+    <div class="mode-buttons">
+      <button onclick="setMode('player')">2 Players</button>
+      <button onclick="setMode('computer')">Vs Computer</button>
+      <button onclick="resetGame()">Restart</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const boardElement = document.getElementById("board");
+    const statusElement = document.getElementById("status");
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let currentPlayer = "X";
+    let gameActive = true;
+    let mode = "player"; // 'player' or 'computer'
+
+    function setMode(selectedMode) {
+      mode = selectedMode;
+      resetGame();
+    }
+
+    function createBoard() {
+      boardElement.innerHTML = "";
+      board.forEach((cell, index) => {
+        const cellElement = document.createElement("div");
+        cellElement.classList.add("cell");
+        cellElement.setAttribute("data-index", index);
+        cellElement.innerText = cell;
+        cellElement.addEventListener("click", handleCellClick);
+        boardElement.appendChild(cellElement);
+      });
+    }
+
+    function handleCellClick(e) {
+      const index = e.target.getAttribute("data-index");
+      if (board[index] !== "" || !gameActive) return;
+
+      board[index] = currentPlayer;
+      e.target.innerText = currentPlayer;
+
+      if (checkWinner()) {
+        statusElement.innerText = `Player ${currentPlayer} Wins!`;
+        gameActive = false;
+        return;
+      } else if (board.every(cell => cell !== "")) {
+        statusElement.innerText = "It's a Draw!";
+        gameActive = false;
+        return;
+      }
+
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      statusElement.innerText = `Player ${currentPlayer}'s Turn`;
+
+      if (mode === "computer" && currentPlayer === "O") {
+        setTimeout(computerMove, 500);
+      }
+    }
+
+    function computerMove() {
+      // Simple AI: choose random empty cell
+      const emptyCells = board.map((val, idx) => val === "" ? idx : null).filter(v => v !== null);
+      if (emptyCells.length === 0) return;
+
+      const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      board[randomIndex] = "O";
+      document.querySelector(`[data-index='${randomIndex}']`).innerText = "O";
+
+      if (checkWinner()) {
+        statusElement.innerText = "Computer Wins!";
+        gameActive = false;
+        return;
+      } else if (board.every(cell => cell !== "")) {
+        statusElement.innerText = "It's a Draw!";
+        gameActive = false;
+        return;
+      }
+
+      currentPlayer = "X";
+      statusElement.innerText = "Player X's Turn";
+    }
+
+    function checkWinner() {
+      const winningConditions = [
+        [0,1,2],[3,4,5],[6,7,8], // rows
+        [0,3,6],[1,4,7],[2,5,8], // cols
+        [0,4,8],[2,4,6]          // diagonals
+      ];
+
+      return winningConditions.some(condition => {
+        const [a, b, c] = condition;
+        return board[a] && board[a] === board[b] && board[a] === board[c];
+      });
+    }
+
+    function resetGame() {
+      board = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "X";
+      gameActive = true;
+      statusElement.innerText = "Player X's Turn";
+      createBoard();
+    }
+
+    // Initialize
+    createBoard();
+    statusElement.innerText = "Choose Mode: 2 Players or Vs Computer";
+  </script>
+</body>
+</html>
